@@ -1,0 +1,6 @@
+apiVersion: v2
+appVersion: v1.0.0
+description: A Helm chart for the grafana-mimir
+name: grafana-mimir
+type: application
+version: 3.0.9

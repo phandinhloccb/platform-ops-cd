@@ -1,21 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: prometheus-blackbox-exporter
+  name: opentelemetry-collector
   namespace: {{ $.Values.argocdNamespace }}
   finalizers: 
     - resources-finalizer.argocd.argoproj.io
 spec: 
   destination:
-    namespace: prometheus-blackbox-exporter
+    namespace: opentelemetry-collector
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: applications/observability/prometheus-blackbox-exporter/{{ $.Values.env }}
+    path: applications/observability/opentelemetry-collector/{{ $.Values.env }}
     repoURL: https://github.com/platform-argo-cd.git
     targetRevision: HEAD
     helm:
-      releaseName: prometheus-blackbox-exporter
+      releaseName: opentelemetry-collector
       valueFiles:
         - values-{{ $.Values.env }}.yaml
   syncPolicy:

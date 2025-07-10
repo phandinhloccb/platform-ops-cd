@@ -1,21 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: grafana-tempo
+  name: prometheus
   namespace: {{ $.Values.argocdNamespace }}
   finalizers:
     - resources-finalizer.argocd.argoproj.io
 spec:
   destination:
-    namespace: grafana-tempo
+    namespace: prometheus
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: applications/observability/grafana-tempo/{{ $.Values.env }}
+    path: applications/observability/prometheus/{{ $.Values.env }}
     repoURL: https://github.com/platform-argo-cd.git
     targetRevision: HEAD
     helm:
-      releaseName: grafana-tempo
+      releaseName: prometheus
       valueFiles:
         - values-{{ $.Values.env }}.yaml
   syncPolicy:
