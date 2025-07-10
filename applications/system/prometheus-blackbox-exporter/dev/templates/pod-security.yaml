@@ -1,0 +1,11 @@
+apiVersion: policy/v1
+kind: PodSecurity
+metadata:
+  name: restricted
+  namespace: {{ .Release.Namespace }}
+spec:
+  policy: restricted
+  enforce: true
+  enforce-version: v1.24.0
+  audit: true
+  audit-version: v1.24.0

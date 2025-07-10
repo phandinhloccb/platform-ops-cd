@@ -1,0 +1,36 @@
+aws-load-balancer-controller:
+  clusterName: dev-app
+
+  image:
+    tag: v2.8.2
+
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::xxx:role/dev-app-aws-load-balancer-controller-eks-irsa-role
+
+  region: ap-northeast-1
+
+  vpcId: vpc-xxxx
+
+  affinity:
+    podAntiAfinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+              - aws-load-balancer-controller
+          topologyKey: "kubernetes.io/hostname"
+  
+  nodeSelector:
+    eks.amazonaws.com/nodegroup: dev-app-system
+
+  tolerations:
+  - key: "node-group"
+    operator: "Equal"
+    value: "system"
+    effect: "NoExecute"
+

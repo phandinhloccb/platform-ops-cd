@@ -1,0 +1,34 @@
+external-dns-public:
+  provider: aws
+  policy: sync
+  txtOwnerId: dev-app
+  domainFilters:
+    - demo-app-loc.site
+  sources:
+    - ingress
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::xxx:role/dev-app-external-dns-public-eks-irsa-role
+
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoreDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+              - external-dns-public
+          topologyKey: kubernetes.io/hostname
+
+  nodeSelector:
+    eks.amazonaws.com/nodegroup: dev-app-system
+
+  tolerations:
+  - key: "node-group"
+    operator: "Equal"
+    value: "system"
+    effect: "NoExecute"
+

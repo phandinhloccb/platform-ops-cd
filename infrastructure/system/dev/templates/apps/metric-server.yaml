@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: metric-server
+  namespace: {{ $.Values.argocdNamespace }}
+  finalizers: 
+    - resources-finalizer.argocd.argoproj.io
+spec: 
+  destination:
+    namespace: metric-server
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: applications/metric-server/{{ $.Values.env }}
+    repoURL: https://github.com/application-org/platform-argo-cd.git
+    targetRevision: HEAD
+    helm:
+      releaseName: metric-server
+      valueFiles:
+        - values-{{ $.Values.env }}.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

@@ -1,0 +1,23 @@
+env: dev
+argocdNamespace: argo-cd
+applications:
+  - name: product-service
+    namespace: product-service-namespace
+    path: helm-{{ $.Values.env }}
+    repoURL: https://github.com/phandinhloccb/product-service-spring-boot
+  - name: order-service
+    namespace: order-service-namespace
+    path: helm-{{ $.Values.env }}
+    repoURL: https://github.com/phandinhloccb/order-service-spring-boot
+  - name: auth-service
+    namespace: auth-service-namespace
+    path: helm-{{ $.Values.env }}
+    repoURL: https://github.com/phandinhloccb/auth-service-spring-boot
+  - name: api-gateway-service
+    namespace: api-gateway-service-namespace
+    path: helm-{{ $.Values.env }}
+    repoURL: https://github.com/phandinhloccb/api-gateway-service-spring-boot
+  - name: notification-service
+    namespace: notification-service-namespace
+    path: helm-{{ $.Values.env }}
+    repoURL: https://github.com/phandinhloccb/notification-service-spring-boot

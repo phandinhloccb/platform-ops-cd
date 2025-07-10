@@ -1,0 +1,85 @@
+prometheus-blackbox-exporter:
+  replicas: 2
+  podDisruptionBudget:
+    minAvailable: 1
+  
+  sericeAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::xxx:role/dev-app-prometheus-blackbox-exporter-eks-irsa-role
+
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: http
+
+  readinessProbe:
+    httpGet:
+      path: /health
+      port: http
+
+  config:
+  modules:
+    http_2xx:
+      prober: http
+      timeout: 5s
+      http:
+        valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+        follow_redirects: true
+        preferred_ip_protocol: "ip4"
+    https_2xx:
+      probe: http
+      timeout: 5s
+      http:
+        method: GET
+        no_follow_redirects: false
+        fail_if_ssl: false
+        fail_if_no_ssl: false
+        valid_http_versions: [ "HTTP/1.1", "HTTP/2.0" ]
+          preferred_ip_protocol: "ipv4"
+          tls_config:
+            insecure_skip_verify: true
+      dns_tcp:
+        prober: dns
+        dns:
+          transport_protocol: "tcp"
+          preferred_ip_protoccol: "ip4"
+          query_name: "www.prometheus.io"
+
+  resources:
+    limits:
+      cpu: 200m
+      memory: 300Mi
+    requests:
+      cpu: 200m
+      memory: 100Mi
+
+  afinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - prometheus-blackbox-exporter
+          topologyKey: kubernetes.io/hostname
+  
+  nodeSelector:
+    eks.amazonaws.com/nodegroup: sandbox-app-system
+
+  tolerations:
+    - key: "node-group"
+      operator: "Equal"
+      value: "system"
+      effect: "NoExecute"
+
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: [ "ALL" ]

@@ -1,0 +1,44 @@
+cluster-autoscaler:
+  cloudProvider: aws
+  awsRegion: ap-northeast-1
+  rbac:
+    serviceAccount:
+      name: "cluster-autoscaler"
+      annotations:
+        eks.amazonaws.com/role-arn: arn:aws:iam::xxx:role/dev-app-cluster-autoscaler-eks-irsa-role
+
+  autoDiscovery:
+    clusterName: dev-app
+    autoDiscovery:
+      clusterName: dev-app
+      tags:
+        - "k8s.io/cluster-autoscaler/enabled"
+        - "k8s.io/cluster-autoscaler/{{ .Values.autoDiscovery.clusterName }}"
+        - "kubernetes.io/cluster/{{ .Values.autoDiscovery.clusterName }}"
+
+  extraArgs:
+    skip-nodes-with-local-storage: "false"
+    skip-nodes-with-system-pods: "false"
+
+  affinity:
+    podAntiAffinity:
+      requiredDuringScheduleingIgnoreDuringExcution:
+      - labelSelector:
+        matchExpressions:
+        - key: app.kubernetes.io/name
+          operation: In
+          values:
+          - "cluster-autoscaler"
+        topologyKey: kubernetes.io/hostname
+  nodeSelector:
+    eks.amazonaws.com/nodegroup: dev-app-system
+
+  tolerations:
+    - key: "node-group"
+      operator: "Equal"
+      value: "system"
+      effect: "NoExecute"
+
+
+
+

@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-blackbox-exporter
+  namespace: {{ $.Values.argocdNamespace }}
+  finalizers: 
+    - resources-finalizer.argocd.argoproj.io
+spec: 
+  destination:
+    namespace: prometheus-blackbox-exporter
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: applications/prometheus-blackbox-exporter/{{ $.Values.env }}
+    repoURL: https://github.com/application-org/platform-argo-cd.git
+    targetRevision: HEAD
+    helm:
+      releaseName: prometheus-blackbox-exporter
+      valueFiles:
+        - values-{{ $.Values.env }}.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

@@ -1,0 +1,10 @@
+reloader:
+  reloader:
+    deployment:
+      nodeSelector:
+        eks.amazonaws.com/nodegroup: dev-app-system
+      tolerations:
+        - key: "node-group"
+          operator: "Equal"
+          value: "system"
+          effect: "NoExecute"

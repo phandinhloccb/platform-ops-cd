@@ -1,0 +1,40 @@
+metrics-server:
+  replicaCount: 2
+  podDisruptionBuget:
+    enabled: true
+    minAvailable: 1
+  affnity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+              - metrics-server
+          topologyKey: kubernetes.io/hostname
+
+  nodeSelector:
+    eks.amazonaws.com/nodegroup: dev-app-system
+
+  tolerations:
+    - key: "node-group"
+      operator: "Equal"
+      value: "system"
+      effect: "NoExecute"
+
+  service:
+    annotations:
+      monitoring/probe_httpsservice_availability: "true"
+      monitoring/probe_path: "/readyz"
+
+  nodeSelector:
+    eks.amazonaws.com/nodegroup: "dev-app-system"
+
+  tolerations:
+    - key: "node-group"
+      operator: "Equal"
+      value: "system"
+      effect: "NoExecute"
