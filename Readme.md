@@ -221,6 +221,28 @@ To add a new application to the system, follow these steps:
 
 ---
 
+### Adding a New Service Repository
+
+To add a new microservice repository to the deployment system, simply add a new entry to the `applications` list in `infrastructure/app/dev/values-dev.yaml`. Each entry should specify:
+- `name`: The application name
+- `namespace`: The Kubernetes namespace for the service
+- `path`: The Helm chart path (e.g., `helm-dev`)
+- `repoURL`: The Git repository URL for the service
+
+Example:
+
+```yaml
+applications:
+  - name: payment-service
+    namespace: payment-service-namespace
+    path: helm-dev
+    repoURL: https://github.com/your-org/payment-service-spring-boot
+```
+
+After updating the file, ArgoCD will detect the new application and deploy it automatically if configured for auto-sync.
+
+---
+
 ## Configuration
 
 ### Environment Variables
