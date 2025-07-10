@@ -1,21 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: prometheus-blackbox-exporter
+  name: grafana-tempo
   namespace: {{ $.Values.argocdNamespace }}
-  finalizers: 
+  finalizers:
     - resources-finalizer.argocd.argoproj.io
-spec: 
+spec:
   destination:
-    namespace: prometheus-blackbox-exporter
+    namespace: grafana-tempo
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: applications/prometheus-blackbox-exporter/{{ $.Values.env }}
-    repoURL: https://github.com/application-org/platform-argo-cd.git
+    path: applications/observability/grafana-tempo/{{ $.Values.env }}
+    repoURL: https://github.com/platform-argo-cd.git
     targetRevision: HEAD
     helm:
-      releaseName: prometheus-blackbox-exporter
+      releaseName: grafana-tempo
       valueFiles:
         - values-{{ $.Values.env }}.yaml
   syncPolicy:

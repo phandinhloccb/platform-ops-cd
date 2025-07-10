@@ -11,8 +11,8 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: applications/cluster-autoscaler/{{ $.Values.env }}
-    repoURL: https://github.com/application-org/platform-argo-cd.git
+    path: applications/system/cluster-autoscaler/{{ $.Values.env }}
+    repoURL: https://github.com/platform-argo-cd.git
     targetRevision: HEAD
     helm:
       releaseName: cluster-autoscaler

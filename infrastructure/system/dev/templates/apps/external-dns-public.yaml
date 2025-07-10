@@ -11,8 +11,8 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: applications/external-dns-public/{{ $.Values.env }}
-    repoURL: https://github.com/application-org/platform-argo-cd.git
+    path: applications/system/external-dns-public/{{ $.Values.env }}
+    repoURL: https://github.com/platform-argo-cd.git
     targetRevision: HEAD
     helm:
       releaseName: external-dns-public

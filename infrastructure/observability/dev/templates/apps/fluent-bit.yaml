@@ -1,21 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: metric-server
+  name: fluet-bit
   namespace: {{ $.Values.argocdNamespace }}
-  finalizers: 
+  finalizers:
     - resources-finalizer.argocd.argoproj.io
-spec: 
+spec:
   destination:
-    namespace: metric-server
+    namespace: fluent-bit
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: applications/system/metric-server/{{ $.Values.env }}
+    path: applications/observability/fluent-bit/{{ $.Values.env }}
     repoURL: https://github.com/platform-argo-cd.git
     targetRevision: HEAD
     helm:
-      releaseName: metric-server
+      releaseName: fluent-bit
       valueFiles:
         - values-{{ $.Values.env }}.yaml
   syncPolicy:

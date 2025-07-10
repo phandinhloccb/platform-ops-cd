@@ -11,8 +11,8 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: applications/aws-load-balancer-controller/{{ $.Values.env }}
-    repoURL: https://github.com/application-org/platform-argo-cd.git
+    path: applications/system/aws-load-balancer-controller/{{ $.Values.env }}
+    repoURL: https://github.com/platform-argo-cd.git
     targetRevision: HEAD
     helm:
       releaseName: aws-load-balancer-controller

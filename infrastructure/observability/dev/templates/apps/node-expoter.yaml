@@ -1,21 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: metric-server
+  name: prometheus-blackbox-exporter
   namespace: {{ $.Values.argocdNamespace }}
   finalizers: 
     - resources-finalizer.argocd.argoproj.io
 spec: 
   destination:
-    namespace: metric-server
+    namespace: prometheus-blackbox-exporter
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: applications/system/metric-server/{{ $.Values.env }}
+    path: applications/observability/prometheus-blackbox-exporter/{{ $.Values.env }}
     repoURL: https://github.com/platform-argo-cd.git
     targetRevision: HEAD
     helm:
-      releaseName: metric-server
+      releaseName: prometheus-blackbox-exporter
       valueFiles:
         - values-{{ $.Values.env }}.yaml
   syncPolicy:
