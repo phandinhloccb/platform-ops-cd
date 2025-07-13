@@ -17,8 +17,8 @@ loki:
         region: ap-northeast-1
 
     server:
-      grpc_server_max_recv_msg_size: 104857600 # 100MB
-      grpc_server_max_send_msg_size: 104857600 # 100MB
+      grpc_server_max_recv_msg_size: 104857600
+      grpc_server_max_send_msg_size: 104857600
 
     commonConfig:
       replication_factor: 1
@@ -60,13 +60,26 @@ loki:
       retention_enabled: true
       delete_request_cancel_period: 1h
 
+    schemaConfig:
+      configs:
+        - from: 2025-07-13
+          store: true
+          object_store: s3
+          schema: v11
+          index:
+            prefix: loki_index_
+          chunk:
+            target_size: 1536MB
+            max_lookback_period: 1h
+          index:
+            prefix: loki_index_
 
   gateway:
     replicas: 2
     basicAuth:
-      enabled: true
+      enabled: false
     autoscaling:
-      enabled: true
+      enabled: false
 
   backend:
     replicas: 3
