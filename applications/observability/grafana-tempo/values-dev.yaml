@@ -1,0 +1,172 @@
+tempo-distributed:
+  serviceAccount:
+    create: true
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::xxx:role/dev-app-grafana-tempo-eks-irsa-role
+
+  rbac:
+    create: false
+    pspEnabled: false
+
+  ingester:
+    replicas: 3
+    persistence:
+      enabled: false
+      inMemory: false
+      size: 10Gi
+      storageClass: null
+      annotations: {}
+      labels: {}
+    
+    nodeSelector:
+      eks.amazonaws.com/nodegroup: dev-app-system
+
+    tolerations:
+    - key: "node-group"
+      operator: "Equal"
+      value: "observability"
+      effect: "NoExecute"
+
+    config:
+      replication_factor: 3
+      trace_idle_period: null
+      flush_check_period: null
+      max_block_bytes: null
+      max_block_duration: null
+      complete_block_timeout: null
+      flush_all_on_shutdown: false
+
+  metricsGenerator:
+    enabled: false
+
+  distributor:
+    replicas: 1
+
+    nodeSelector:
+      eks.amazonaws.com/nodegroup: dev-app-system
+
+    tolerations:
+    - key: "node-group"
+      operator: "Equal"
+      value: "observability"
+      effect: "NoExecute"
+
+  compactor:
+    replicas: 1
+
+    nodeSelector:
+      eks.amazonaws.com/nodegroup: dev-app-system
+
+    tolerations:
+    - key: "node-group"
+      operator: "Equal"
+      value: "observability"
+      effect: "NoExecute"
+
+  querier:
+    replicas: 1
+
+    nodeSelector:
+      eks.amazonaws.com/nodegroup: dev-app-system
+
+    tolerations:
+    - key: "node-group"
+      operator: "Equal"
+      value: "observability"
+      effect: "NoExecute"
+
+  queryFrontend:
+    replicas: 1
+
+    nodeSelector:
+      eks.amazonaws.com/nodegroup: dev-app-system
+
+    tolerations:
+    - key: "node-group"
+      operator: "Equal"
+      value: "observability"
+      effect: "NoExecute"
+
+  enterpriseFederationFrontend:
+    enabled: false
+
+  multitenancyEnabled: false
+
+  rollout_operator:
+    enabled: false
+
+  traces:
+    otlp:
+      http:
+        enabled: false
+        receiverConfig: {}
+      grpc:
+        enabled: true
+        receiverConfig: {}
+        port: 4317
+
+  server:
+    httpListenPort: 3200
+    logLevel: info
+    logFormat: logfmt
+    grpc_server_max_recv_msg_size: 4194304
+    grpc_server_max_send_msg_size: 4194304
+    http_server_read_timeout: 30s
+    http_server_write_timeout: 30s
+
+  storage:
+    trace:
+      block:
+        version: null
+        dedicated_columns: []
+      backend: s3
+      s3:
+        bucket: tempo-traces
+        endpoint: s3.us-east-1.amazonaws.com
+        region: us-east-1
+        insecure: false
+        force_path_style: false
+      pool:
+        max_workers: 400
+        queue_depth: 20000
+      search:
+        prefetch_trace_count: 1000
+      blocklist_poll: 5m
+      blocklist_poll_concurrency: null
+      blocklist_poll_fallback: null
+      blocklist_poll_tenant_index_builders: null
+      blocklist_poll_stale_tenant_index: null
+    admin:
+      backend: filesystem
+
+  memcached:
+    enabled: true
+    replicas: 1
+
+    nodeSelector:
+      eks.amazonaws.com/nodegroup: dev-app-system
+
+    tolerations:
+    - key: "node-group"
+      operator: "Equal"
+      value: "observability"
+      effect: "NoExecute"
+
+  memcachedExporter:
+    enabled: false
+  
+  gateway:
+    enabled: false
+    replicas: 1
+
+    nodeSelector:
+      eks.amazonaws.com/nodegroup: dev-app-system
+
+    tolerations:
+    - key: "node-group"
+      operator: "Equal"
+      value: "observability"
+      effect: "NoExecute"
+  
+  ingress:
+    enabled: false

@@ -1,0 +1,129 @@
+mimir-distributed:
+  rbac:
+    create: false
+
+  serviceAccount:
+    name: mimir
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::xxx:role/dev-app-grafana-mimir-eks-irsa-role
+
+  mimir:
+    structuredConfig:
+      common:
+        storage:
+          backend: s3
+          s3:
+            region: ap-northeast-1
+            bucket_name: application-log-mimir
+            endpoint: s3.ap-northeast-1.amazonaws.com
+
+  ingester:
+    tolerations:
+    - key: "node-group"
+      operator: "Equal"
+      value: "observability"
+      effect: "NoExecute"
+    resources:
+      requests:
+        cpu: "100m" 
+        memory: "512Mi"
+      limits:
+        cpu: "1000m"
+        memory: "1024Mi"
+
+  store_gateway:
+    tolerations:
+    - key: "node-group"
+      operator: "Equal"
+      value: "observability"
+      effect: "NoExecute"
+    resources:
+      requests:
+        cpu: "100m"  
+        memory: "512Mi"
+      limits:
+        cpu: "1000m"
+        memory: "1024Mi"
+
+  nginx:
+    enabled: true
+    replicas: 1
+    tolerations:
+    - key: "node-group"
+      operator: "Equal"
+      value: "observability"
+      effect: "NoExecute"
+    nodeSelector:
+      eks.amazonaws.com/nodegroup: dev-app-observability
+    ingress:
+      enabled: false
+
+  gateway:
+    replicas: 2
+    tolerations:
+    - key: "node-group"
+      operator: "Equal"
+      value: "observability"
+      effect: "NoExecute"
+    nodeSelector:
+      eks.amazonaws.com/nodegroup: dev-app-observability
+    enabledNonEnterprise: false
+
+  query_frontend:
+    enabled: true
+    replicas: 2
+    service:
+      annotations: {}
+      labels: {}
+      internalTrafficPolicy: Cluster
+      type: ClusterIP
+      extraPorts: []
+    nodeSelector:
+      eks.amazonaws.com/nodegroup: dev-app-observability
+    tolerations:
+    - key: "node-group"
+      operator: "Equal"
+      value: "observability"
+    
+  query_scheduler:
+    replicas: 2
+    enabled: true
+    tolerations:
+    - key: "node-group"
+      operator: "Equal"
+      value: "observability"
+      effect: "NoExecute"
+    nodeSelector:
+      eks.amazonaws.com/nodegroup: dev-app-observability
+
+  rollout_operator:
+    enabled: false
+
+  overrides_exporter:
+    enabled: false
+
+  ruler:
+    extraArgs:
+      auth.multitenancy-enabled: false
+    enabled: false
+
+  alertmanager:
+    enabled: false
+
+  admin-cache:
+    enabled: false
+
+  chunks-cache:
+    enabled: false
+
+  index-cache:
+    enabled: false
+
+  metadata-cache:
+    enabled: false
+
+  results-cache:
+    enabled: false
+
+  minio:
+    enabled: false

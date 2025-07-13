@@ -1,6 +1,0 @@
-apiVersion: v2
-appVersion: v1.0.0
-description: A Helm chart for the node-exporter
-name: node-exporter
-type: application
-version: 4.5.17

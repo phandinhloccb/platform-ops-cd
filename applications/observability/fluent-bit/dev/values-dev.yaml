@@ -1,92 +1,132 @@
-loki:
-  loki:
-    auth_enabled: false
-    schemaConfig:
-      configs:
-        - from: "2024-04-01"
-          store: tsdb
-          object_store: s3
-          schema: v13
-          index:
-            prefix: loki_index_
-            period: 24h
-    storage_config:
-      aws:
-        region: ap-northeast-1
-        bucketnames: aws-log-loki
-        s3forcepathstyle: false
-    pattern_ingester:
-        enabled: true
-    limits_config:
-      allow_structured_metadata: true
-      volume_enabled: true
-      retention_period: 672h # 28 days retention
-    querier:
-      max_concurrent: 4
+fluent-bit:
+  kind: DaemonSet
+  replicaCount: 1
+  existingConfigMap: ""
 
-    storage:
-      type: s3
-      bucketNames:
-          chunks: aws-log-loki
-          ruler: aws-log-rule
-          admin: aws-log-admin
-      s3:
-        region: ap-northeast-1
-        s3ForcePathStyle: false
-        insecure: false
-        http_config: {}
+  luaScripts: {}
 
-  deploymentMode: SimpleScalable
+  config:
+    service: |
+      [SERVICE]
+          Daemon Off
+          Flush 5
+          Log_Level info
+          Parsers_File /fluent-bit/etc/parsers.conf
+          Parsers_File /fluent-bit/etc/conf/custom_parsers.conf
+          HTTP_Server On
+          HTTP_Listen 0.0.0.0
+          HTTP_Port 2020
+          Health_Check On
 
-  serviceAccount:
-    create: true
-    annotations:
-      "eks.amazonaws.com/role-arn": "arn:aws:iam::412723383795:role/sandbox-app-loki-eks-irsa-role" 
+    inputs: |
+      [INPUT]
+          Exclude_Path        /var/log/containers/argo-*, /var/log/containers/cluster-autoscaler-*, /var/log/containers/aws-load-balancer-controller-*, /var/log/containers/cert-manager-*, /var/log/containers/external-dns-*, /var/log/containers/external-secrets-*, /var/log/containers/metrics-server-*, /var/log/containers/reloader-*, /var/log/containers/cloudwatch-agent*, /var/log/containers/cloudwatch-prometheus-agent*, /var/log/containers/fluent-bit*, /var/log/containers/microservice-template-*, /var/log/containers/coredns-*, /var/log/containers/aws-node*, /var/log/containers/kube-proxy*, /var/log/containers/*envoy*, /var/log/containers/*proxyinit*
+          Name                tail
+          Tag                 application.services.main.*
+          Path                /var/log/containers/*.log
+          Multiline           On
+          Parser_Firstline    logging_library_main_parser
+          Multiline_Flush     2
+          DB                  /var/fluent-bit/state/flb_container.db
+          Mem_Buf_Limit       50MB
+          Skip_Long_Lines     On
+          Refresh_Interval    10
+          Rotate_Wait         30
+          storage.type        filesystem
+          Read_from_Head      false
 
-  backend:
-    replicas: 3
-    autoscaling:
-      enabled: false
-    tolerations:
-    - key: "node-group"
-      operator: "Equal"
-      value: "system"
-      effect: "NoExecute"
-  read:
-    replicas: 3
-    autoscaling:
-      enabled: false
-    tolerations:
-    - key: "node-group"
-      operator: "Equal"
-      value: "system"
-      effect: "NoExecute"
-  write:
-    replicas: 3
-    autoscaling:
-      enabled: false
-    tolerations:
-    - key: "node-group"
-      operator: "Equal"
-      value: "system"
-      effect: "NoExecute"
-  chunksCache:
-    replicas: 1
-    allocatedMemory: 1024
-    autoscaling:
-      enabled: false
-    tolerations:
-    - key: "node-group"
-      operator: "Equal"
-      value: "system"
-      effect: "NoExecute"
+      [INPUT]
+          Name systemd
+          Tag host.*
+          Systemd_Filter _SYSTEMD_UNIT=kubelet.service
+          Read_From_Tail On
 
-  test:
+    filters: |
+      [FILTER]
+          Name kubernetes
+          Match kube.*
+          Merge_Log On
+          Keep_Log Off
+          K8S-Logging.Parser On
+          K8S-Logging.Exclude On
+
+    outputs: |
+      [OUTPUT]
+          Name es
+          Match kube.*
+          Host elasticsearch-master
+          Logstash_Format On
+          Retry_Limit False
+
+      [OUTPUT]
+          Name es
+          Match host.*
+          Host elasticsearch-master
+          Logstash_Format On
+          Logstash_Prefix node
+          Retry_Limit False
+
+    upstream: {}
+
+    customParsers: |
+      [PARSER]
+          Name docker_no_time
+          Format json
+          Time_Keep Off
+          Time_Key time
+          Time_Format %Y-%m-%dT%H:%M:%S.%L
+      [PARSER]
+          name logging_library_main_parser
+          Format regex
+          Regex /^(?<log>{\"log\":\".*\",\"time\":\"(?<time>.*?)\"})/
+          Time_Key time
+          Time_Format %Y-%m-%dT%H:%M:%S.%LZ
+
+    extraFiles: {}
+
+  volumeMounts:
+    - name: config
+      mountPath: /fluent-bit/etc/conf
+
+  daemonSetVolumes:
+    - name: varlog
+      hostPath:
+        path: /var/log
+    - name: varlibdockercontainers
+      hostPath:
+        path: /var/lib/docker/containers
+    - name: etcmachineid
+      hostPath:
+        path: /etc/machine-id
+        type: File
+
+  daemonSetVolumeMounts:
+    - name: varlog
+      mountPath: /var/log
+    - name: varlibdockercontainers
+      mountPath: /var/lib/docker/containers
+      readOnly: true
+    - name: etcmachineid
+      mountPath: /etc/machine-id
+      readOnly: true
+
+  command:
+    - /fluent-bit/bin/fluent-bit
+
+  args:
+    - --workdir=/fluent-bit/etc
+    - --config=/fluent-bit/etc/conf/fluent-bit.conf
+
+  initContainers: []
+
+  logLevel: info
+
+  hotReload:
     enabled: false
-
-  lokiCanary:
-    enabled: false
-
-  # Disable minio storage
-  minio:
-    enabled: false
+    image:
+      repository: ghcr.io/jimmidyson/configmap-reload
+      tag: v0.14.0
+      digest:
+      pullPolicy: IfNotPresent
+    resources: {}
+    extraWatchVolumes: []

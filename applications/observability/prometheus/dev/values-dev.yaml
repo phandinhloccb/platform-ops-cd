@@ -1,0 +1,101 @@
+prometheus:
+  serviceAccounts:
+    server:
+      create: true
+      name: prometheus-server
+      annotations: 
+        eks.amazonaws.com/role-arn: arn:aws:iam::xxxx:role/prometheus-server-role
+
+
+  ruleFiles: {}
+
+  scrapeConfigFiles: []
+
+  extraScrapeConfigs: 
+  - job_name: 'kube-state-metrics'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - kube-system  
+    metrics_path: /metrics
+    scheme: http
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: kube-state-metrics
+      - source_labels: [__meta_kubernetes_pod_name]
+        target_label: instance
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: kube-state-metrics.prometheus.svc.cluster.local:8080
+  - job_name: 'node-exporter'
+    kubernetes_sd_configs:
+      - role: node
+    metrics_path: /metrics
+    scheme: http
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_node_name]
+        target_label: instance
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: prometheus-node-exporter.prometheus.svc.cluster.local:9100
+  - job_name: 'prometheus-blackbox-exporter'
+    metrics_path: /probe
+    params:
+      module: [http_2xx] 
+    static_configs:
+      - targets:
+        - http://inventory-service.inventory-service.svc.cluster.local  
+        - http://order-service.order-service.svc.cluster.local  
+        - http://product-service.product-service.svc.cluster.local 
+        - http://notification-service.notification-service.svc.cluster.local  
+        - http://api-gateway-service.api-gateway-service.svc.cluster.local  
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: prometheus-blackbox-exporter.prometheus.svc.cluster.local:9115
+
+  networkPolicy:
+    enabled: false
+
+  forceNamespace: ""
+
+  server:
+    remoteWrite:
+      - url: "http://grafana-mimir-distributor.grafana-mimir.svc.cluster.local:8080/api/v1/push" 
+        remote_timeout: 30s
+        write_relabel_configs:
+          - source_labels: [__name__]
+            action: drop
+            regex: ".*_bucket|.*_count|.*_sum" 
+        sigv4:
+          region: "ap-northeast-1"  
+        headers:
+          X-Scope-OrgID: "1"  
+
+  extraManifests: []
+
+  alertmanager:
+    enabled: false
+
+  kube-state-metrics:
+    enabled: true
+
+  prometheus-node-exporter:
+    enabled: true
+
+  prometheus-pushgateway:
+    enabled: true
+
+    serviceAnnotations:
+      prometheus.io/probe: pushgateway
