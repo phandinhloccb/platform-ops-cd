@@ -57,6 +57,37 @@ flowchart TD
 
 ---
 
+## System Structure Overview
+
+The platform is organized into three main parts:
+
+### 1. Application Services
+These are your business microservices, typically managed as separate repositories and deployed via ArgoCD. Each service usually has its own namespace and Helm chart.
+- **Examples:**
+  - product-service
+  - order-service
+  - auth-service
+  - api-gateway-service
+  - notification-service
+
+### 2. System Components
+These are core infrastructure services required for the Kubernetes platform to operate reliably and securely.
+- **Examples:**
+  - cluster-autoscaler (automatic node scaling)
+  - aws-load-balancer-controller (AWS ALB/NLB management)
+  - cert-manager (certificate management)
+  - external-dns-public (DNS automation)
+  - reloader (auto-reload pods on config/secret change)
+
+### 3. Observability Components
+These provide monitoring, logging, and alerting for your platform and applications.
+- **Examples:**
+  - prometheus-blackbox-exporter (external endpoint monitoring)
+  - fluent-bit (log collection and forwarding)
+  - metrics-server (resource metrics for HPA and monitoring)
+
+---
+
 ## Prerequisites
 
 ### Required Tools
