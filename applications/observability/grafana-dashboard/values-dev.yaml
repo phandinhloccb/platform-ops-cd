@@ -60,7 +60,7 @@ grafana:
 
         - name: Tempo
           type: tempo
-          url: http://tempo:3100
+          url: http://grafana-tempo-query-frontend.grafana-tempo.svc.cluster.local:9090
           access: proxy
           isDefault: false
           editable: true

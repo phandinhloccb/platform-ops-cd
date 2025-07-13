@@ -1,15 +1,16 @@
 opentelemetry-collector:
+  image:
+    repository: "otel/opentelemetry-collector-contrib"
+    pullPolicy: IfNotPresent
+    tag: ""
+    digest: ""
+  imagePullSecrets: []
+
+  mode: "deployment"
+  
   configMap:
     create: true
     existingName: ""
-
-  internalTelemetryViaOTLP:
-    endpoint: ""
-    headers: []
-    traces:
-      enabled: true
-      endpoint: ""
-      headers: []
 
   config:
     exporters:

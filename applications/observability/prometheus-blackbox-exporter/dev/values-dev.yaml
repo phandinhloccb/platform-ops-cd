@@ -35,9 +35,9 @@ prometheus-blackbox-exporter:
           fail_if_ssl: false
           fail_if_no_ssl: false
           valid_http_versions: [ "HTTP/1.1", "HTTP/2.0" ]
-            preferred_ip_protocol: "ipv4"
-            tls_config:
-              insecure_skip_verify: true
+          preferred_ip_protocol: "ipv4"
+          tls_config:
+            insecure_skip_verify: true
         dns_tcp:
           prober: dns
           dns:
