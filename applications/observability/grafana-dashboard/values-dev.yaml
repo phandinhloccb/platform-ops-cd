@@ -1,0 +1,83 @@
+grafana:
+  serviceAccount:
+    create: true
+    name:
+    nameTest:
+    labels: {}
+    automountServiceAccountToken: false
+
+  replicas: 1
+  podDisruptionBudget: {}
+
+  service:
+    enabled: true
+    type: ClusterIP
+    ipFamilyPolicy: ""
+    ipFamilies: []
+    loadBalancerIP: ""
+    loadBalancerClass: ""
+    loadBalancerSourceRanges: []
+    port: 80
+    targetPort: 3000
+    annotations: {}
+    labels: {}
+    portName: service
+    appProtocol: ""
+    sessionAffinity: ""
+
+  nodeSelector: 
+    eks.amazonaws.com/nodegroup: "dev-app-system"
+  tolerations: 
+    - key: "node-group"
+      operator: "Equal"
+      value: "observability"
+      effect: "NoSchedule"
+
+  datasources: 
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://grafana-tempo-query-frontend.grafana-tempo.svc.cluster.local:9090
+          access: proxy
+          isDefault: true
+          editable: true
+
+        - name: Loki
+          type: loki
+          url: http://grafana-loki-query-frontend.grafana-loki.svc.cluster.local:3100
+          access: proxy
+          isDefault: false
+          editable: true
+
+        - name: Mimir
+          type: prometheus
+          url: http://grafana-mimir-query-frontend.grafana-mimir.svc.cluster.local:8080/prometheus
+          access: proxy
+          isDefault: false
+          editable: true
+
+        - name: Tempo
+          type: tempo
+          url: http://tempo:3100
+          access: proxy
+          isDefault: false
+          editable: true
+
+      deleteDatasources: []
+
+  grafana.ini:
+    paths:
+      data: /var/lib/grafana/
+      logs: /var/log/grafana
+      plugins: /var/lib/grafana/plugins
+      provisioning: /etc/grafana/provisioning
+    analytics:
+      check_for_updates: true
+    log:
+      mode: console
+    grafana_net:
+      url: https://grafana.net
+    server:
+      domain: "{{ if (and .Values.ingress.enabled .Values.ingress.hosts) }}{{ tpl (.Values.ingress.hosts | first) . }}{{ else }}''{{ end }}"
